@@ -1,39 +1,31 @@
 const express = require('express');
-const axios = require('axios');
-const fs = require('fs'); // For file system operations (if needed)
+const axios = require('axios'); // Import axios for making HTTP requests
+const fs = require('fs'); // Import fs for file system operations
+const cors = require('cors'); // Import CORS for cross-origin requests
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(express.json()); // Middleware to parse JSON bodies
+// Middleware
+app.use(cors()); // Enable CORS for all routes
+app.use(express.json()); // Parse JSON bodies
 
-// Login route
 app.post('/', async (req, res) => {
-  const { username, password } = req.body; // Get username and password from request body
+  const { name, password } = req.body; // Extract name and password from request body
 
-  if (!username || !password) {
-    return res.status(400).send('Username and password are required.');
-  }
+  const playerFilePath = `${process.env.link}Players/${name}.json`; // Construct the file path for the player's JSON file
 
-  const playerPath = `${process.env.link}Players/${username}.json`; // Construct player file path
+  // Check if the player's file exists
+  if (fs.existsSync(playerFilePath)) {
+    const playerData = JSON.parse(fs.readFileSync(playerFilePath, 'utf-8')); // Read and parse the player's data
 
-  try {
-    // Check if the player file exists
-    const response = await axios.get(playerPath);
-    const playerData = response.data;
-
-    // Check if the password matches
+    // Validate the password
     if (playerData.password === password) {
-      return res.send('Success!');
+      return res.send('Success!'); // Password matches
     } else {
-      return res.status(401).send('Invalid password.');
+      return res.status(401).send('Invalid password'); // Password does not match
     }
-  } catch (error) {
-    // Handle different error scenarios
-    if (error.response && error.response.status === 404) {
-      return res.status(404).send('User not found.');
-    }
-    console.error('Error fetching player data:', error);
-    return res.status(500).send('Internal server error.');
+  } else {
+    return res.status(404).send('User not found'); // User file does not exist
   }
 });
 
