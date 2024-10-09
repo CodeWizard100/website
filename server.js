@@ -13,7 +13,7 @@ app.get('/', async (req, res) => {
     const players = response.data;
 
     // Format the player data into a string
-    const playersText = players.map(player => `${player.name} has a cash ${player.casg}`).join('\n');
+    const playersText = players.map(player => `${player.name} has a cash ${player.cash}`).join('\n');
 
     // Send the formatted player data as a response
     res.send(`Hi!.\nPlayers data:\n${playersText}`);
