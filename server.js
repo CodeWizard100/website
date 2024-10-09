@@ -1,27 +1,47 @@
 const express = require('express');
 const axios = require('axios'); // Import axios for making HTTP requests
+const fs = require('fs'); // Import fs to check if files exist
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.get('/', async (req, res) => {
+// Middleware to parse JSON request bodies
+app.use(express.json());
+
+app.post('/login', async (req, res) => {
+  const { name, password } = req.body; // Get name and password from the request body
+
+  if (!name || !password) {
+    return res.status(400).send('Name and password are required.'); // Handle missing parameters
+  }
+
   try {
-    const secretValue = process.env.test; // Access the secret value
-    const playersUrl = `${process.env.link}Players.json`; // Construct the URL for the GET request
-    const response = await axios.get(playersUrl); // Make the GET request to the constructed URL
-    
-    // Response data is an object with player names as keys
-    const playersData = response.data;
+    // Construct the URL for the player's JSON file
+    const playerFileUrl = `${process.env.link}Players/${name}.json`;
 
-    // Convert the players data object into an array of strings
-    const playersText = Object.entries(playersData) // Convert object to an array of [key, value] pairs
-      .map(([playerName, playerDetails]) => `${playerName} has ${playerDetails.cash} cash and their password is ${playerDetails.password}`)
-      .join('\n');
+    // Check if the player's file exists
+    const playerResponse = await axios.get(playerFileUrl);
 
-    // Send the formatted player data as a response
-    res.send(`Hi, the secret value is: ${secretValue}.\nPlayers data:\n${playersText}`);
+    if (playerResponse.status !== 200) {
+      return res.status(404).send('User not found.'); // If the user does not exist
+    }
+
+    const playerData = playerResponse.data; // Get the player data from the response
+
+    // Check if the password matches
+    if (playerData.password !== password) {
+      return res.status(401).send('Invalid password.'); // If the password does not match
+    }
+
+    // If everything is successful
+    res.send('Success!'); // Respond with success message
   } catch (error) {
-    console.error('Error fetching players data:', error); // Log any errors
-    res.status(500).send('Error fetching players data'); // Send an error response
+    if (error.response && error.response.status === 404) {
+      // If the player's file is not found, respond accordingly
+      return res.status(404).send('User not found.');
+    }
+
+    console.error('Error fetching player data:', error); // Log any other errors
+    res.status(500).send('Internal server error.'); // Send a generic error response
   }
 });
 
