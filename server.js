@@ -1,6 +1,5 @@
 const express = require('express');
 const axios = require('axios'); // Import axios for making HTTP requests
-const fs = require('fs'); // Import fs for file system operations
 const cors = require('cors'); // Import CORS for cross-origin requests
 const app = express();
 const port = process.env.PORT || 3000;
@@ -12,11 +11,13 @@ app.use(express.json()); // Parse JSON bodies
 app.post('/', async (req, res) => {
   const { name, password } = req.body; // Extract name and password from request body
 
-  const playerFilePath = `${process.env.link}Players/${name}.json`; // Construct the file path for the player's JSON file
+  // Construct the URL for the player's JSON file
+  const playerFilePath = `${process.env.link}Players/${name}.json`;
 
-  // Check if the player's file exists
-  if (fs.existsSync(playerFilePath)) {
-    const playerData = JSON.parse(fs.readFileSync(playerFilePath, 'utf-8')); // Read and parse the player's data
+  try {
+    // Make a GET request to fetch the player's data
+    const response = await axios.get(playerFilePath);
+    const playerData = response.data; // Extract the player data from the response
 
     // Validate the password
     if (playerData.password === password) {
@@ -24,8 +25,13 @@ app.post('/', async (req, res) => {
     } else {
       return res.status(401).send('Invalid password'); // Password does not match
     }
-  } else {
-    return res.status(404).send(`${playerFilePath}`); // User file does not exist
+  } catch (error) {
+    // Handle errors, such as 404 Not Found
+    if (error.response && error.response.status === 404) {
+      return res.status(404).send('User does not exist'); // User file does not exist
+    }
+    console.error('Error fetching player data:', error);
+    return res.status(500).send('Internal server error'); // Handle other errors
   }
 });
 
