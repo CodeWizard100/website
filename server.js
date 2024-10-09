@@ -3,7 +3,8 @@ const app = express();
 const port = process.env.PORT || 3000; // Use the PORT environment variable or default to 3000
 
 app.get('/', (req, res) => {
-  res.send('Hi!'); // Respond with "Hi!" when the root URL is accessed
+  const secretValue = process.env.test; // Get the value of the 'test' secret
+  res.send(`Hi! The secret value is: ${secretValue}`); // Respond with the secret value
 });
 
 app.listen(port, () => {
