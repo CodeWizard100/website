@@ -6,7 +6,7 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.17.1"
-    "axios": "^0.26.1", // or whatever version you need
+    "express": "^4.17.1",
+    "axios": "^0.26.1"
   }
 }
