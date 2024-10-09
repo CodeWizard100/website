@@ -1,11 +1,15 @@
 const express = require('express');
 const axios = require('axios'); // Import axios for making HTTP requests
-const fs = require('fs'); // Import fs to check if files exist
 const app = express();
 const port = process.env.PORT || 3000;
 
 // Middleware to parse JSON request bodies
 app.use(express.json());
+
+// Root route
+app.get('/', (req, res) => {
+  res.send('Only Posts are allowed!.'); // Respond to GET requests to /
+});
 
 app.post('/login', async (req, res) => {
   const { name, password } = req.body; // Get name and password from the request body
