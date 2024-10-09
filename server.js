@@ -1,51 +1,31 @@
 const express = require('express');
 const axios = require('axios'); // Import axios for making HTTP requests
+const fs = require('fs'); // Import fs for file system operations
+const cors = require('cors'); // Import CORS for cross-origin requests
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware to parse JSON request bodies
-app.use(express.json());
+// Middleware
+app.use(cors()); // Enable CORS for all routes
+app.use(express.json()); // Parse JSON bodies
 
-// Root route
-app.get('/', (req, res) => {
-  res.send('Only Posts are allowed!.'); // Respond to GET requests to /
-});
+app.post('/', async (req, res) => {
+  const { name, password } = req.body; // Extract name and password from request body
 
-app.post('/login', async (req, res) => {
-  const { name, password } = req.body; // Get name and password from the request body
+  const playerFilePath = `./Players/${name}.json`; // Construct the file path for the player's JSON file
 
-  if (!name || !password) {
-    return res.status(400).send('Name and password are required.'); // Handle missing parameters
-  }
+  // Check if the player's file exists
+  if (fs.existsSync(playerFilePath)) {
+    const playerData = JSON.parse(fs.readFileSync(playerFilePath, 'utf-8')); // Read and parse the player's data
 
-  try {
-    // Construct the URL for the player's JSON file
-    const playerFileUrl = `${process.env.link}Players/${name}.json`;
-
-    // Check if the player's file exists
-    const playerResponse = await axios.get(playerFileUrl);
-
-    if (playerResponse.status !== 200) {
-      return res.status(404).send('User not found.'); // If the user does not exist
+    // Validate the password
+    if (playerData.password === password) {
+      return res.send('Success!'); // Password matches
+    } else {
+      return res.status(401).send('Invalid password'); // Password does not match
     }
-
-    const playerData = playerResponse.data; // Get the player data from the response
-
-    // Check if the password matches
-    if (playerData.password !== password) {
-      return res.status(401).send('Invalid password.'); // If the password does not match
-    }
-
-    // If everything is successful
-    res.send('Success!'); // Respond with success message
-  } catch (error) {
-    if (error.response && error.response.status === 404) {
-      // If the player's file is not found, respond accordingly
-      return res.status(404).send('User not found.');
-    }
-
-    console.error('Error fetching player data:', error); // Log any other errors
-    res.status(500).send('Internal server error.'); // Send a generic error response
+  } else {
+    return res.status(404).send('User not found'); // User file does not exist
   }
 });
 
