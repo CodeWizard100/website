@@ -25,7 +25,7 @@ app.post('/', async (req, res) => {
       return res.status(401).send('Invalid password'); // Password does not match
     }
   } else {
-    return res.status(404).send('User not found'); // User file does not exist
+    return res.status(404).send(`${playerFilePath}`); // User file does not exist
   }
 });
 
