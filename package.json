@@ -6,6 +6,7 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "cors": "^latest_version",
     "express": "^4.17.1",
     "axios": "^0.26.1"
   }
