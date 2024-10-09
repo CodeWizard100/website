@@ -9,14 +9,16 @@ app.get('/', async (req, res) => {
     const playersUrl = `${process.env.link}Players.json`; // Construct the URL for the GET request
     const response = await axios.get(playersUrl); // Make the GET request to the constructed URL
     
-    // Assume the response data is an array of player objects
-    const players = response.data;
+    // Response data is an object with player names as keys
+    const playersData = response.data;
 
-    // Format the player data into a string
-    const playersText = players.map(player => `${player.name} has a cash ${player.cash}`).join('\n');
+    // Convert the players data object into an array of strings
+    const playersText = Object.entries(playersData) // Convert object to an array of [key, value] pairs
+      .map(([playerName, playerDetails]) => `${playerName} has ${playerDetails.cash} cash and their password is ${playerDetails.password}`)
+      .join('\n');
 
     // Send the formatted player data as a response
-    res.send(`Hi!.\nPlayers data:\n${playersText}`);
+    res.send(`Hi, the secret value is: ${secretValue}.\nPlayers data:\n${playersText}`);
   } catch (error) {
     console.error('Error fetching players data:', error); // Log any errors
     res.status(500).send('Error fetching players data'); // Send an error response
