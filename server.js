@@ -4,7 +4,7 @@ const port = process.env.PORT || 3000; // Use the PORT environment variable or d
 
 app.get('/', (req, res) => {
   const secretValue = process.env.test; // Access the secret value
-  res.send(`The secret value is: ${secretValue}`); // Respond with the secret value
+  res.send(`Hi The secret value is: ${secretValue}`); // Respond with the secret value
 });
 
 app.listen(port, () => {
