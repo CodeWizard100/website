@@ -3,9 +3,6 @@ const fs = require('fs'); // Import fs to handle file operations
 const cors = require('cors'); // Import CORS for cross-origin requests
 const app = express();
 const port = process.env.PORT || 3000;
-
-
-
 // Middleware
 app.use(cors()); // Enable CORS for all routes
 app.use(express.json()); // Parse JSON bodies
@@ -59,7 +56,7 @@ app.post('/', async (req, res) => {
         }
     } catch (error) {
         console.error('Error processing request:', error);
-        return res.status(500).send('Failed to process request'); // Handle other errors
+        return res.status(500).send(`Failed to process request: ${error.message}`); // Handle other errors
     }
 });
 
