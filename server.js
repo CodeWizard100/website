@@ -8,6 +8,10 @@ const port = process.env.PORT || 3000;
 app.use(cors()); // Enable CORS for all routes
 app.use(express.json()); // Parse JSON bodies
 
+app.get('/', (req, res) => {
+    res.send("Invalid Request");
+})
+
 app.post('/', async (req, res) => {
   const { name, password } = req.body; // Extract name and password from request body
 
