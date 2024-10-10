@@ -1,65 +1,70 @@
+// app.js
+
 const express = require('express');
-const fs = require('fs'); // Import fs to handle file operations
-const cors = require('cors'); // Import CORS for cross-origin requests
+const axios = require('axios');
+const bodyParser = require('body-parser');
+const dotenv = require('dotenv');
+const path = require('path');
+
+dotenv.config();
+
 const app = express();
-const port = process.env.PORT || 3000;
-// Middleware
-app.use(cors()); // Enable CORS for all routes
-app.use(express.json()); // Parse JSON bodies
+const PORT = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-    res.send("Invalid Request");
-});
+app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public'))); // Serve static files from 'public' directory
 
-// Handle registration and login in the same POST request
-app.post('/', async (req, res) => {
-    const { name, password, type } = req.body; // Extract name, password, and type from request body
+const DATABASE_URL = process.env.link; // Your Firebase Database URL
 
-    // Construct the URL for the player's JSON file
-    const playersFilePath = `${process.env.link}Players.json`;
+// Register User
+app.post('/register', async (req, res) => {
+    const { username, password } = req.body;
 
     try {
-        // Initialize players data
-        let playersData = {};
+        // Check if user already exists
+        const userRef = `${DATABASE_URL}/${username}.json`;
+        const response = await axios.get(userRef);
 
-        // Read existing players data
-        if (fs.existsSync(playersFilePath)) {
-            const data = fs.readFileSync(playersFilePath);
-            playersData = JSON.parse(data); // Parse existing players data
-        }
-
-        if (type === 'register') {
-            // Check if the user already exists
-            if (playersData[name]) {
-                return res.status(500).send('User already exists'); // Internal Server Error if user exists
-            }
-
-            // Add new user
-            playersData[name] = {
-                password: password,
-                cash: 0, // Default cash
-                token: '', // Default token
-            };
-
-            // Write updated players data to the file
-            fs.writeFileSync(playersFilePath, JSON.stringify(playersData, null, 2)); // Save with pretty print
-            return res.send('User registered successfully!'); // Successful registration
-        } else if (type === 'login') {
-            // Validate the password
-            if (playersData[name] && playersData[name].password === password) {
-                return res.send('Login successful!'); // Password matches
-            } else {
-                return res.status(401).send('Invalid password'); // Password does not match
-            }
+        // Check if the response data is "null"
+        if (response.data === null) {
+            // Register the user by adding the password
+            await axios.put(userRef, { password });
+            return res.status(200).json({ message: 'User registered successfully!' });
         } else {
-            return res.status(400).send('Invalid request type'); // Invalid request type
+            return res.status(400).json({ message: 'User already exists!' });
         }
     } catch (error) {
-        console.error('Error processing request:', error);
-        return res.status(500).send(`Failed to process request: ${error.message}`); // Handle other errors
+        console.error(error);
+        res.status(500).json({ message: 'Error registering user: ' + error.message });
     }
 });
 
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+// Login User
+app.post('/login', async (req, res) => {
+    const { username, password } = req.body;
+
+    try {
+        // Check if user exists
+        const userRef = `${DATABASE_URL}/${username}.json`;
+        const response = await axios.get(userRef);
+
+        // Check if the response data is "null"
+        if (response.data === null) {
+            return res.status(400).json({ message: 'User does not exist!' });
+        }
+
+        const userData = response.data;
+        if (userData.password !== password) {
+            return res.status(401).json({ message: 'Failed to login!' });
+        }
+
+        res.status(200).json({ message: 'Login successful!' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error logging in: ' + error.message });
+    }
+});
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
