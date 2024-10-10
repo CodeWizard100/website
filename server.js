@@ -1,67 +1,33 @@
-// app.js
-
 const express = require('express');
-const axios = require('axios');
+const cors = require('cors'); // Import CORS package
 const bodyParser = require('body-parser');
-const dotenv = require('dotenv');
-const path = require('path');
-
-dotenv.config();
+const axios = require('axios');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public'))); // Serve static files from 'public' directory
+app.use(cors()); // Enable CORS for all routes
+app.use(bodyParser.json()); // Parse JSON bodies
 
-const DATABASE_URL = process.env.link; // Your Firebase Database URL
-
-// Register User
 app.post('/register', async (req, res) => {
     const { username, password } = req.body;
 
     try {
-        // Check if user already exists
-        const userRef = `${DATABASE_URL}/${username}.json`;
-        const response = await axios.get(userRef);
-
-        // Check if the response data is "null"
-        if (response.data === null) {
-            // Register the user by adding the password
-            await axios.put(userRef, { password });
-            return res.status(200).json({ message: 'User registered successfully!' });
-        } else {
+        // Check if the user already exists
+        const response = await axios.get(`${process.env.link}/Players/${username}.json`);
+        
+        // If response data is null, it means the user does not exist
+        if (response.data !== null) {
             return res.status(400).json({ message: 'User already exists!' });
         }
+
+        // Register the new user
+        await axios.put(`${process.env.link}/Players/${username}.json`, { password });
+
+        return res.status(200).json({ message: 'User registered successfully!' });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error registering user: ' + error.message });
-    }
-});
-
-// Login User
-app.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-
-    try {
-        // Check if user exists
-        const userRef = `${DATABASE_URL}/${username}.json`;
-        const response = await axios.get(userRef);
-
-        // Check if the response data is "null"
-        if (response.data === null) {
-            return res.status(400).json({ message: 'User does not exist!' });
-        }
-
-        const userData = response.data;
-        if (userData.password !== password) {
-            return res.status(401).json({ message: 'Failed to login!' });
-        }
-
-        res.status(200).json({ message: 'Login successful!' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error logging in: ' + error.message });
+        console.error('Error registering user:', error);
+        return res.status(500).json({ message: 'Error registering user!' });
     }
 });
 
