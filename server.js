@@ -31,7 +31,7 @@ app.post('/', async (req, res) => {
       return res.status(404).send('User does not exist'); // User file does not exist
     }
     console.error('Error fetching player data:', error);
-    return res.status(500).send('Internal server error'); // Handle other errors
+    return res.status(500).send('Failed To Find User'); // Handle other errors
   }
 });
 
