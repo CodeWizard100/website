@@ -155,9 +155,7 @@ app.post('/getmoney', async (req, res) => {
         const response = await axios.get(`${process.env.link}/Players/${username}.json`);
 
         // If the user does not exist
-        if (response.data === null) {
-            return res.status(400).json({ message: 'User does not exist!' });
-        }
+      
 
         // Check if the password matches
         if (response.data.password !== password) {
