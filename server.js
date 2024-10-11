@@ -157,7 +157,7 @@ app.post('/getcash', async (req, res) => {
 
         // If the user does not exist
         if (response.data === null) {
-            return res.status(400).json({ message: 'User does not exist!' });
+            return res.status(400).json({ message: `${process.env.link}/Players/${username}.json` });
         }
 
         // Check if the password matches
