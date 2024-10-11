@@ -155,15 +155,10 @@ app.post('/getmoney', async (req, res) => {
         const response = await axios.get(`${process.env.link}/Players/${username}.json`);
 
         // If the user does not exist
-      
+          return res.send(`${process.env.link}/Players/${username}.json`);
 
         // Check if the password matches
-        if (response.data.password !== password) {
-            return res.status(400).json({ message: 'Incorrect password!' });
-        }
 
-        // Successful login
-        return res.status(200).json({ message: response.data.money});
     } catch (error) {
         console.error('Error logging in user:', error);
         return res.status(500).json({ message: 'Error getting money in user!' });
