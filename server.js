@@ -174,6 +174,69 @@ app.post('/getcash', async (req, res) => {
     }
 });
 
+// Add Upgrade Route
+app.post('/addupgrade', async (req, res) => {
+    const { username, password, token, upgradeName } = req.body;
+
+    try {
+        // Check if the user exists
+        const response = await axios.get(`${process.env.link}/Players/${username}.json`);
+
+        // If the user does not exist
+        if (response.data === null) {
+            return res.status(400).json({ message: 'User does not exist!' });
+        }
+
+        // Check if the password matches
+        if (response.data.password !== password) {
+            return res.status(400).json({ message: 'Incorrect password!' });
+        }
+
+        // Check if the token matches
+        if (response.data.token !== token) {
+            return res.status(400).json({ message: 'Invalid token!' });
+        }
+
+        // Create the path to the specific upgrade and set `has` to true
+        const upgradePath = `/Players/${username}/Upgrades/${upgradeName}.json`;
+        await axios.patch(`${process.env.link}${upgradePath}`, { has: true });
+
+        return res.status(200).json({ message: 'Upgrade added successfully!' });
+    } catch (error) {
+        console.error('Error adding upgrade:', error);
+        return res.status(500).json({ message: 'Error adding upgrade!' });
+    }
+});
+
+// Check if User Has Upgrade Route
+app.post('/hasupgrade', async (req, res) => {
+    const { username, password, upgradeName } = req.body;
+
+    try {
+        // Check if the user exists
+        const response = await axios.get(`${process.env.link}/Players/${username}.json`);
+
+        // If the user does not exist
+        if (response.data === null) {
+            return res.status(400).json({ message: 'User does not exist!' });
+        }
+
+        // Check if the password matches
+        if (response.data.password !== password) {
+            return res.status(400).json({ message: 'Incorrect password!' });
+        }
+
+        // Check if the specific upgrade exists and has 'has: true'
+        const hasUpgrade = response.data.Upgrades && response.data.Upgrades[upgradeName] && response.data.Upgrades[upgradeName].has === true;
+
+        return res.status(200).json({ message: 'Upgrade check successful!', hasUpgrade });
+    } catch (error) {
+        console.error('Error checking upgrade:', error);
+        return res.status(500).json({ message: 'Error checking upgrade!' });
+    }
+});
+
+
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
